@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VS Code + GitHub Copilot - Полный Гайд для Разработчиков</title>
+    <style>
+        :root {
+            --color-primary: #2d8aff;
+            --color-secondary: #1e293b;
+            --color-success: #10b981;
+            --color-warning: #f59e0b;
+            --color-error: #ef4444;
+            --color-bg: #0f172a;
+            --color-surface: #1e293b;
+            --color-border: #334155;
+            --color-text: #e2e8f0;
+            --color-text-muted: #94a3b8;
+            --space-8: 8px;
+            --space-16: 16px;
+            --space-24: 24px;
+            --space-32: 32px;
+            --radius: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, var(--color-bg) 0%, #1a1f35 100%);
+            color: var(--color-text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--space-32);
+        }
+
+        /* HEADER */
+        header {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--color-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: var(--space-16) 0;
+        }
+
+        header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: var(--space-16);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #2d8aff 0%, #60a5fa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: var(--color-border);
+            border-radius: 2px;
+            overflow: hidden;
+            flex: 1;
+            max-width: 300px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--color-primary), var(--color-success));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: var(--color-text-muted);
+            min-width: 50px;
+            text-align: right;
+        }
+
+        /* HERO */
+        .hero {
+            text-align: center;
+            padding: var(--space-32) 0;
+            margin-bottom: var(--space-32);
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            margin-bottom: var(--space-16);
+            background: linear-gradient(135deg, #2d8aff 0%, #60a5fa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: var(--color-text-muted);
+            max-width: 600px;
+            margin: var(--space-16) auto var(--space-32);
+        }
+
+        .hero .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-16);
+            margin: var(--space-32) 0;
+        }
+
+        .feature-badge {
+            background: rgba(45, 138, 255, 0.1);
+            border: 1px solid rgba(45, 138, 255, 0.3);
+            border-radius: var(--radius);
+            padding: var(--space-16);
+            text-align: center;
+        }
+
+        .feature-badge strong {
+            display: block;
+            color: var(--color-primary);
+            margin-bottom: var(--space-8);
+        }
+
+        .feature-badge p {
+            font-size: 14px;
+            color: var(--color-text-muted);
+            margin: 0;
+        }
+
+        /* MAIN CONTENT */
+        .main {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: var(--space-32);
+            margin-top: var(--space-32);
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+        }
+
+        .step-nav {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .step-nav-item {
+            padding: var(--space-16);
+            border-bottom: 1px solid var(--color-border);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: transparent;
+            border: none;
+            width: 100%;
+            text-align: left;
+            font-size: 14px;
+            color: var(--color-text-muted);
+        }
+
+        .step-nav-item:hover {
+            background: rgba(45, 138, 255, 0.1);
+            color: var(--color-primary);
+        }
+
+        .step-nav-item.active {
+            background: rgba(45, 138, 255, 0.15);
+            color: var(--color-primary);
+            border-left: 3px solid var(--color-primary);
+            padding-left: calc(var(--space-16) - 3px);
+        }
+
+        .step-nav-item:last-child {
+            border-bottom: none;
+        }
+
+        /* STEPS */
+        .content {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-32);
+        }
+
+        .step {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            padding: var(--space-24);
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .step h2 {
+            font-size: 28px;
+            margin-bottom: var(--space-24);
+            color: var(--color-primary);
+        }
+
+        .step h3 {
+            font-size: 18px;
+            margin-top: var(--space-24);
+            margin-bottom: var(--space-16);
+            color: var(--color-text);
+        }
+
+        .step p {
+            margin-bottom: var(--space-16);
+            color: var(--color-text-muted);
+            line-height: 1.8;
+        }
+
+        .step ol, .step ul {
+            margin-left: var(--space-24);
+            margin-bottom: var(--space-16);
+            color: var(--color-text-muted);
+        }
+
+        .step li {
+            margin-bottom: var(--space-8);
+        }
+
+        .step a {
+            color: var(--color-primary);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .step a:hover {
+            color: #60a5fa;
+            text-decoration: underline;
+        }
+
+        /* CODE BLOCKS */
+        .code-block {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            padding: var(--space-16);
+            margin: var(--space-16) 0;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #a8e6cf;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: var(--space-8);
+            right: var(--space-8);
+            background: rgba(45, 138, 255, 0.2);
+            border: 1px solid var(--color-primary);
+            color: var(--color-primary);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            background: rgba(45, 138, 255, 0.4);
+        }
+
+        .copy-btn.copied {
+            background: var(--color-success);
+            border-color: var(--color-success);
+            color: white;
+        }
+
+        /* CHECKLIST */
+        .checklist {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-12);
+            margin: var(--space-16) 0;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-12);
+            padding: var(--space-12);
+            background: rgba(45, 138, 255, 0.05);
+            border: 1px solid rgba(45, 138, 255, 0.2);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-item:hover {
+            background: rgba(45, 138, 255, 0.1);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--color-primary);
+        }
+
+        .checkbox-item input[type="checkbox"]:checked + label {
+            color: var(--color-success);
+            text-decoration: line-through;
+        }
+
+        .checkbox-item label {
+            flex: 1;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        /* BUTTONS */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-8);
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-primary) 0%, #60a5fa 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(45, 138, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--color-surface);
+            color: var(--color-primary);
+            border: 2px solid var(--color-primary);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(45, 138, 255, 0.1);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: var(--space-16);
+            margin-top: var(--space-24);
+            flex-wrap: wrap;
+        }
+
+        /* INFO BOXES */
+        .info-box {
+            padding: var(--space-16);
+            border-radius: var(--radius);
+            border-left: 4px solid;
+            margin: var(--space-16) 0;
+        }
+
+        .info-box.note {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: #3b82f6;
+        }
+
+        .info-box.warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: #f59e0b;
+        }
+
+        .info-box.success {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: #10b981;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: var(--space-8);
+        }
+
+        /* STEP CONTROLS */
+        .step-controls {
+            display: flex;
+            gap: var(--space-16);
+            margin-top: var(--space-32);
+            padding-top: var(--space-24);
+            border-top: 1px solid var(--color-border);
+        }
+
+        .step-controls button {
+            flex: 1;
+        }
+
+        /* TIMER */
+        .timer {
+            display: flex;
+            align-items: center;
+            gap: var(--space-8);
+            font-size: 14px;
+            color: var(--color-text-muted);
+        }
+
+        .timer svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .main {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+                margin-bottom: var(--space-24);
+            }
+
+            .hero h1 {
+                font-size: 32px;
+            }
+
+            .step {
+                padding: var(--space-16);
+            }
+
+            header .container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <header>
+        <div class="container">
+            <div class="logo">⚡ VS Code Mastery</div>
+            <div style="display: flex; align-items: center; gap: 16px; flex: 1;">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text"><span id="currentStep">1</span>/<span id="totalSteps">8</span></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <div class="container">
+        <!-- HERO -->
+        <section class="hero">
+            <h1>🚀 Полный гайд: VS Code + GitHub Copilot</h1>
+            <p>Настрой профессиональное окружение разработчика за 30 минут и начни писать код в 10 раз быстрее</p>
+            <div class="features">
+                <div class="feature-badge">
+                    <strong>💰 1000₽</strong>
+                    <p>Один раз заплатил - пожизненный доступ</p>
+                </div>
+                <div class="feature-badge">
+                    <strong>⏱️ 30 минут</strong>
+                    <p>Полная настройка с нуля</p>
+                </div>
+                <div class="feature-badge">
+                    <strong>🎯 100% Ready</strong>
+                    <p>Сразу начинай писать код</p>
+                </div>
+                <div class="feature-badge">
+                    <strong>📚 Скриптов</strong>
+                    <p>Все готово для автоматизации</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- MAIN CONTENT -->
+        <div class="main">
+            <!-- SIDEBAR -->
+            <aside class="sidebar">
+                <nav class="step-nav" id="stepNav"></nav>
+            </aside>
+
+            <!-- CONTENT -->
+            <main class="content" id="content"></main>
+        </div>
+    </div>
+
+    <script>
+        // COURSE STEPS DATA
+        const steps = [
+            {
+                id: 1,
+                title: '📋 Подготовка и требования',
+                time: 3,
+                content: `
+                    <h2>Что тебе нужно перед стартом</h2>
+                    <p>Убедись, что у тебя есть всё необходимое для работы. Это займёт буквально 5 минут.</p>
+
+                    <h3>Системные требования</h3>
+                    <ul>
+                        <li>ОС: Windows 10+, macOS 10.15+, Linux (Ubuntu 18.04+)</li>
+                        <li>RAM: минимум 4GB (рекомендуется 8GB)</li>
+                        <li>Место на диске: 500MB свободного места</li>
+                        <li>Интернет: необходимо для загрузки VS Code и расширений</li>
+                    </ul>
+
+                    <h3>Что нужно создать</h3>
+                    <div class="info-box note">
+                        <strong>ℹ️ Важно:</strong> Перед началом убедись, что у тебя есть аккаунт GitHub. Это будет основой для интеграции Copilot.
+                    </div>
+
+                    <div class="checklist">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check1">
+                            <label for="check1">Создал аккаунт GitHub (если его нет)</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check2">
+                            <label for="check2">Проверил версию операционной системы</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check3">
+                            <label for="check3">Свободное место на диске (500MB+)</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check4">
+                            <label for="check4">Интернет-подключение стабильно</label>
+                        </div>
+                    </div>
+
+                    <div class="info-box success">
+                        <strong>✅ Готово?</strong> Переходим к загрузке VS Code!
+                    </div>
+                `
+            },
+            {
+                id: 2,
+                title: '💾 Загрузка VS Code',
+                time: 5,
+                content: `
+                    <h2>Скачиваем VS Code</h2>
+                    <p>VS Code - это лучший редактор для разработки. Скачиваем его официально и не пользуемся портативными версиями.</p>
+
+                    <h3>Шаг 1: Перейди на официальный сайт</h3>
+                    <p>Откройте <a href="https://code.visualstudio.com/" target="_blank">https://code.visualstudio.com/</a></p>
+
+                    <h3>Шаг 2: Выбери свою ОС</h3>
+                    <p>Сайт автоматически определит твою систему, но выбери вручную:</p>
+                    <ul>
+                        <li><strong>Windows:</strong> User Installer (64-bit) - проще всего</li>
+                        <li><strong>macOS:</strong> Universal (поддерживает Intel и Apple Silicon)</li>
+                        <li><strong>Linux:</strong> .deb, .rpm или Snap (зависит от дистрибутива)</li>
+                    </ul>
+
+                    <div class="info-box warning">
+                        <strong>⚠️ Важно:</strong> Скачиваем только из официального источника code.visualstudio.com
+                    </div>
+
+                    <h3>Шаг 3: Установи VS Code</h3>
+                    <div class="code-block">
+                        <code>
+# Windows: Просто запусти .exe файл и следуй инструкциям<br>
+# На этапе "Select Additional Tasks" обязательно выбери:<br>
+# ✓ Add to PATH<br>
+# ✓ Add "Open with Code" action<br>
+<br>
+# Linux (Ubuntu/Debian):<br>
+sudo apt update<br>
+sudo apt install code<br>
+<br>
+# macOS: Перетащи VS Code в папку Applications
+                        </code>
+                    </div>
+
+                    <h3>Шаг 4: Первый запуск</h3>
+                    <p>После установки открой VS Code. Если видишь приветственный экран - значит всё установилось верно!</p>
+
+                    <div class="checklist">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check5">
+                            <label for="check5">Скачал VS Code с официального сайта</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check6">
+                            <label for="check6">Установил VS Code</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check7">
+                            <label for="check7">Первый запуск пройден успешно</label>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 3,
+                title: '🔑 GitHub Copilot - Базовая настройка',
+                time: 10,
+                content: `
+                    <h2>Подключаем GitHub Copilot</h2>
+                    <p>GitHub Copilot - это твой ИИ-помощник в кодировании. Он подскажет, как написать код и сэкономит часы работы.</p>
+
+                    <h3>Что такое GitHub Copilot?</h3>
+                    <p>Copilot - это AI-помощник, который использует машинное обучение для предложения кода. Он может:</p>
+                    <ul>
+                        <li>Предлагать строки кода на основе контекста</li>
+                        <li>Генерировать функции по описанию</li>
+                        <li>Объяснять чужой код</li>
+                        <li>Помогать с отладкой</li>
+                    </ul>
+
+                    <h3>Шаг 1: Проверь подписку GitHub Copilot</h3>
+                    <p>GitHub Copilot платный, но есть бесплатный период для новых пользователей:</p>
+                    <ol>
+                        <li>Перейди на <a href="https://github.com/github-copilot/signup" target="_blank">github.com/github-copilot/signup</a></li>
+                        <li>Выбери тариф (Individual или Business)</li>
+                        <li>Для индивидуальных - \$10/месяц или \$100/год</li>
+                    </ol>
+
+                    <div class="info-box note">
+                        <strong>💡 Совет:</strong> Студентам и публичным разработчикам GitHub Copilot часто предоставляется бесплатно. Проверь на <a href="https://education.github.com/" target="_blank">education.github.com</a>
+                    </div>
+
+                    <h3>Шаг 2: Установи расширение Copilot в VS Code</h3>
+                    <ol>
+                        <li>Открой VS Code</li>
+                        <li>Перейди в Extensions (Ctrl+Shift+X на Windows/Linux, Cmd+Shift+X на macOS)</li>
+                        <li>Найди "GitHub Copilot"</li>
+                        <li>Нажми "Install"</li>
+                    </ol>
+
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Скопировать</button>
+                        <code>
+# В VS Code нажми Ctrl+Shift+X и поищи:<br>
+GitHub Copilot<br>
+(official: GitHub)
+                        </code>
+                    </div>
+
+                    <h3>Шаг 3: Авторизуй GitHub Copilot</h3>
+                    <ol>
+                        <li>После установки расширения, нажми на иконку Copilot (слева в боковой панели)</li>
+                        <li>Нажми "Sign in with GitHub"</li>
+                        <li>Браузер откроет github.com - авторизуйся там</li>
+                        <li>Вернись в VS Code - ты готов использовать Copilot!</li>
+                    </ol>
+
+                    <div class="info-box success">
+                        <strong>✅ Всё готово!</strong> Теперь Copilot работает и подсказывает код прямо в редакторе.
+                    </div>
+
+                    <div class="checklist">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check8">
+                            <label for="check8">Проверил подписку на GitHub Copilot</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check9">
+                            <label for="check9">Установил расширение GitHub Copilot</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check10">
+                            <label for="check10">Авторизовал Copilot в VS Code</label>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 4,
+                title: '🎨 Установка расширений',
+                time: 12,
+                content: `
+                    <h2>Профессиональные расширения для VS Code</h2>
+                    <p>Эти расширения превращают VS Code в мощный инструмент разработки. Они ускоряют работу и улучшают качество кода.</p>
+
+                    <h3>Топ-расширения для всех разработчиков</h3>
+                    
+                    <h4>1️⃣ ESLint (проверка качества кода)</h4>
+                    <p>Находит и автоматически исправляет ошибки в коде</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Скопировать</button>
+                        <code>dbaeumer.vscode-eslint</code>
+                    </div>
+
+                    <h4>2️⃣ Prettier (форматирование кода)</h4>
+                    <p>Автоматически форматирует код при сохранении файла</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Скопировать</button>
+                        <code>esbenp.prettier-vscode</code>
+                    </div>
+
+                    <h4>3️⃣ GitLens (работа с Git)</h4>
+                    <p>Показывает, кто когда писал каждую строку кода</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Скопировать</button>
+                        <code>eamodio.gitlens</code>
+                    </div>
+
+                    <h4>4️⃣ REST Client (тестирование API)</h4>
+                    <p>Тестирует API прямо из VS Code</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Скопировать</button>
+                        <code>humao.rest-client</code>
+                    </div>
+
+                    <h4>5️⃣ Docker (работа с контейнерами)</h4>
+                    <p>Управляй Docker контейнерами из VS Code</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Скопировать</button>
+                        <code>ms-azuretools.vscode-docker</code>
+                    </div>
+
+                    <h3>Как быстро установить все расширения</h3>
+                    <p>Вместо ручной установки каждого расширения, используй массовую установку:</p>
+                    
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Скопировать ID</button>
+                        <code>
+dbaeumer.vscode-eslint
+esbenp.prettier-vscode
+eamodio.gitlens
+humao.rest-client
+ms-azuretools.vscode-docker
+                        </code>
+                    </div>
+
+                    <h3>Или используй команду в терминале VS Code</h3>
+                    <p>Открой терминал (Ctrl+\\`) и введи:</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Скопировать</button>
+                        <code>
+code --install-extension dbaeumer.vscode-eslint &&\\
+code --install-extension esbenp.prettier-vscode &&\\
+code --install-extension eamodio.gitlens &&\\
+code --install-extension humao.rest-client &&\\
+code --install-extension ms-azuretools.vscode-docker
+                        </code>
+                    </div>
+
+                    <div class="checklist">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check11">
+                            <label for="check11">ESLint установлен</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check12">
+                            <label for="check12">Prettier установлен</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check13">
+                            <label for="check13">GitLens установлен</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check14">
+                            <label for="check14">REST Client установлен</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check15">
+                            <label for="check15">Docker расширение установлено</label>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 5,
+                title: '⚙️ Настройка settings.json',
+                time: 10,
+                content: `
+                    <h2>Оптимальная конфигурация VS Code</h2>
+                    <p>Правильные настройки - это половина успеха. Эта конфигурация проверена в боевых условиях.</p>
+
+                    <h3>Открываем settings.json</h3>
+                    <ol>
+                        <li>Нажми Ctrl+Shift+P (Cmd+Shift+P на macOS)</li>
+                        <li>Введи "Preferences: Open User Settings (JSON)"</li>
+                        <li>Откроется файл settings.json</li>
+                    </ol>
+
+                    <h3>Вставь эту конфигурацию</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Скопировать</button>
+                        <code>
+{
+  // EDITOR SETTINGS
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "editor.fontSize": 14,
+  "editor.lineHeight": 1.6,
+  "editor.fontFamily": "'Fira Code', Consolas, monospace",
+  "editor.fontLigatures": true,
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.trimAutoWhitespace": true,
+
+  // THEME & APPEARANCE
+  "workbench.colorTheme": "One Dark Pro",
+  "workbench.iconTheme": "Material Icon Theme",
+  "editor.minimap.enabled": true,
+  "editor.wordWrap": "on",
+
+  // FILES
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000,
+  "files.exclude": {
+    "**/.git": true,
+    "**/node_modules": true,
+    "**/dist": true
+  },
+
+  // GIT
+  "git.autofetch": true,
+  "git.defaultCloneDirectory": "~/Developer",
+
+  // PRETTIER
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  // ESLINT
+  "eslint.format.enable": true,
+  "eslint.codeAction.showDocumentation": {
+    "enable": true
+  }
+}
+                        </code>
+                    </div>
+
+                    <div class="info-box note">
+                        <strong>💡 Что делает эта конфигурация:</strong>
+                        <ul>
+                            <li>✅ Форматирует код при сохранении</li>
+                            <li>✅ Автоматически исправляет ошибки ESLint</li>
+                            <li>✅ Сохраняет файлы автоматически</li>
+                            <li>✅ Красивый шрифт с лигатурами</li>
+                        </ul>
+                    </div>
+
+                    <h3>Рекомендуемые темы</h3>
+                    <p>Хорошая тема делает работу приятнее и снижает усталость глаз:</p>
+                    <ul>
+                        <li><strong>One Dark Pro</strong> (самая популярная)</li>
+                        <li><strong>Dracula Official</strong> (контрастная)</li>
+                        <li><strong>Nord</strong> (холодные тона)</li>
+                        <li><strong>Gruvbox Dark Hard</strong> (теплые тона)</li>
+                    </ul>
+
+                    <div class="checklist">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check16">
+                            <label for="check16">Открыл settings.json</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check17">
+                            <label for="check17">Вставил конфигурацию</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check18">
+                            <label for="check18">Выбрал приятную тему</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check19">
+                            <label for="check19">Перезагрузил VS Code</label>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 6,
+                title: '🔧 Configurefile - .eslintrc.json',
+                time: 8,
+                content: `
+                    <h2>Настройка ESLint для твоего проекта</h2>
+                    <p>ESLint - это инструмент, который находит и помогает исправить ошибки и плохие практики в коде.</p>
+
+                    <h3>Создай файл .eslintrc.json</h3>
+                    <ol>
+                        <li>В корне твоего проекта создай файл .eslintrc.json</li>
+                        <li>Вставь содержимое ниже</li>
+                    </ol>
+
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Скопировать</button>
+                        <code>
+{
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+  "extends": [
+    "eslint:recommended"
+  ],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "no-console": ["warn"],
+    "semi": ["error", "always"],
+    "quotes": ["error", "single"],
+    "indent": ["error", 2],
+    "comma-dangle": ["error", "always-multiline"],
+    "object-curly-spacing": ["error", "always"],
+    "array-bracket-spacing": ["error", "always"],
+    "no-trailing-spaces": "error"
+  }
+}
+                        </code>
+                    </div>
+
+                    <h3>Создай файл .prettierrc</h3>
+                    <p>Prettier нужен для единообразного форматирования кода:</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Скопировать</button>
+                        <code>
+{
+  "semi": true,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "useTabs": false,
+  "trailingComma": "all",
+  "bracketSpacing": true,
+  "printWidth": 100,
+  "arrowParens": "always"
+}
+                        </code>
+                    </div>
+
+                    <div class="info-box success">
+                        <strong>✅ Отлично!</strong> Теперь твой проект имеет стандартные правила кода.
+                    </div>
+
+                    <div class="checklist">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check20">
+                            <label for="check20">Создал .eslintrc.json в корне проекта</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check21">
+                            <label for="check21">Создал .prettierrc</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check22">
+                            <label for="check22">Проверил, что расширения видят эти файлы</label>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 7,
+                title: '🚀 Git Workflow & Автоматизация',
+                time: 15,
+                content: `
+                    <h2>Профессиональный Git Workflow</h2>
+                    <p>Правильный Git workflow - это основа командной разработки. Настрой его один раз и забудь о проблемах.</p>
+
+                    <h3>Установи Husky для pre-commit хуков</h3>
+                    <p>Husky автоматически проверяет код перед коммитом:</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Скопировать</button>
+                        <code>
+npm install husky lint-staged --save-dev<br>
+npx husky install
+                        </code>
+                    </div>
+
+                    <h3>Создай pre-commit хук</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Скопировать</button>
+                        <code>
+npx husky add .husky/pre-commit "npm run lint"<br>
+npx husky add .husky/commit-msg 'echo "Проверяю формат сообщения коммита"'
+                        </code>
+                    </div>
+
+                    <h3>Добавь в package.json</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Скопировать</button>
+                        <code>
+{
+  "scripts": {
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "prepare": "husky install"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": ["eslint --fix", "prettier --write"],
+    "*.json": ["prettier --write"]
+  }
+}
+                        </code>
+                    </div>
+
+                    <h3>Git правила для своего проекта</h3>
+                    <p>Создай .gitignore в корне проекта:</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Скопировать</button>
+                        <code>
+# Dependencies<br>
+node_modules/<br>
+/.pnp<br>
+<br>
+# Build<br>
+/dist<br>
+/build<br>
+<br>
+# IDE<br>
+.vscode/settings.json<br>
+.idea/<br>
+*.swp<br>
+<br>
+# OS<br>
+.DS_Store<br>
+Thumbs.db<br>
+<br>
+# Environment<br>
+.env<br>
+.env.local
+                        </code>
+                    </div>
+
+                    <div class="info-box warning">
+                        <strong>⚠️ Важно:</strong> Никогда не коммитьте .env файлы! Используй .env.example вместо этого.
+                    </div>
+
+                    <div class="checklist">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check23">
+                            <label for="check23">Установил Husky и lint-staged</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check24">
+                            <label for="check24">Создал pre-commit хуки</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check25">
+                            <label for="check25">Обновил package.json</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check26">
+                            <label for="check26">Создал .gitignore</label>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 8,
+                title: '🎉 Финиш - Ты готов!',
+                time: 5,
+                content: `
+                    <h2>🚀 Поздравляем! Ты прошёл весь курс!</h2>
+                    <p>Теперь у тебя есть полностью настроенное профессиональное окружение разработки.</p>
+
+                    <h3>✅ Что ты установил:</h3>
+                    <div class="checklist">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check27" checked disabled>
+                            <label for="check27">VS Code с лучшими расширениями</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check28" checked disabled>
+                            <label for="check28">GitHub Copilot - твой ИИ-помощник</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check29" checked disabled>
+                            <label for="check29">ESLint + Prettier для чистого кода</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check30" checked disabled>
+                            <label for="check30">Git workflow с автоматизацией</label>
+                        </div>
+                    </div>
+
+                    <h3>📈 Что ты теперь можешь делать:</h3>
+                    <ul>
+                        <li>💨 Писать код в 10x быстрее с GitHub Copilot</li>
+                        <li>🎯 Автоматически форматировать и проверять код</li>
+                        <li>🔄 Автоматизировать проверки перед коммитом</li>
+                        <li>🚀 Публиковать качественный код</li>
+                        <li>👥 Работать в команде без конфликтов стиля</li>
+                    </ul>
+
+                    <h3>🎓 Дополнительные материалы</h3>
+                    <p>Для углубления знаний:</p>
+                    <ul>
+                        <li><a href="https://code.visualstudio.com/docs" target="_blank">Официальная документация VS Code</a></li>
+                        <li><a href="https://github.com/features/copilot" target="_blank">GitHub Copilot - официальный сайт</a></li>
+                        <li><a href="https://eslint.org/docs/rules/" target="_blank">ESLint Rules</a></li>
+                        <li><a href="https://prettier.io/docs/en/index.html" target="_blank">Prettier документация</a></li>
+                    </ul>
+
+                    <h3>💡 Советы для дальнейшего развития</h3>
+                    <ol>
+                        <li>Изучи горячие клавиши VS Code - они сильно ускоряют работу</li>
+                        <li>Изучи Copilot глубже - он может не только писать код, но и объяснять его</li>
+                        <li>Присоединяйся к сообществу разработчиков</li>
+                        <li>Следи за обновлениями VS Code и расширений</li>
+                    </ol>
+
+                    <div class="info-box success">
+                        <strong>✨ Спасибо за прохождение курса!</strong>
+                        <p>Если у тебя есть вопросы - напиши нам в поддержку.</p>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="downloadSetupScript()">
+                            📥 Скачать скрипт автоматизации
+                        </button>
+                        <button class="btn btn-secondary" onclick="shareProgress()">
+                            🎉 Поделиться прогрессом
+                        </button>
+                    </div>
+                `
+            }
+        ];
+
+        // INIT
+        document.addEventListener('DOMContentLoaded', () => {
+            initSteps();
+            initProgress();
+            initCheckboxes();
+            loadProgress();
+        });
+
+        function initSteps() {
+            const nav = document.getElementById('stepNav');
+            const content = document.getElementById('content');
+            document.getElementById('totalSteps').textContent = steps.length;
+
+            steps.forEach((step, index) => {
+                // Nav item
+                const navItem = document.createElement('button');
+                navItem.className = `step-nav-item ${index === 0 ? 'active' : ''}`;
+                navItem.textContent = `${step.id}. ${step.title}`;
+                navItem.onclick = () => switchStep(index);
+                nav.appendChild(navItem);
+
+                // Content
+                const stepEl = document.createElement('div');
+                stepEl.className = `step ${index === 0 ? 'active' : ''}`;
+                stepEl.innerHTML = step.content;
+                content.appendChild(stepEl);
+            });
+        }
+
+        function initProgress() {
+            loadProgress();
+        }
+
+        function switchStep(index) {
+            // Hide all
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.step-nav-item').forEach(n => n.classList.remove('active'));
+
+            // Show selected
+            document.querySelectorAll('.step')[index].classList.add('active');
+            document.querySelectorAll('.step-nav-item')[index].classList.add('active');
+
+            // Update progress
+            document.getElementById('currentStep').textContent = index + 1;
+            updateProgress();
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function updateProgress() {
+            const total = steps.length;
+            const current = parseInt(document.getElementById('currentStep').textContent);
+            const percent = (current / total) * 100;
+            document.getElementById('progressFill').style.width = percent + '%';
+        }
+
+        function copyToClipboard(btn) {
+            const code = btn.nextElementSibling.textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const original = btn.textContent;
+                btn.textContent = '✅ Скопировано!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = original;
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        function initCheckboxes() {
+            document.addEventListener('change', (e) => {
+                if (e.target.type === 'checkbox') {
+                    saveProgress();
+                }
+            });
+        }
+
+        function saveProgress() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            const progress = Array.from(checkboxes).map(cb => cb.checked);
+            localStorage.setItem('courseProgress', JSON.stringify(progress));
+        }
+
+        function loadProgress() {
+            const saved = localStorage.getItem('courseProgress');
+            if (saved) {
+                const progress = JSON.parse(saved);
+                const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach((cb, i) => {
+                    cb.checked = progress[i] || false;
+                });
+            }
+        }
+
+        function downloadSetupScript() {
+            const script = `#!/bin/bash
+# VS Code + Copilot Setup Script
+# Автоматическая настройка всех расширений и конфигов
+
+echo "🚀 Начинаю установку расширений VS Code..."
+
+# Install extensions
+code --install-extension dbaeumer.vscode-eslint
+code --install-extension esbenp.prettier-vscode
+code --install-extension eamodio.gitlens
+code --install-extension humao.rest-client
+code --install-extension ms-azuretools.vscode-docker
+
+echo "✅ Расширения установлены!"
+echo "📝 Теперь скопируй конфигурацию в settings.json"
+echo "Ctrl+Shift+P -> Preferences: Open User Settings (JSON)"`;
+
+            const blob = new Blob([script], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'setup-vscode.sh';
+            a.click();
+        }
+
+        function shareProgress() {
+            const current = parseInt(document.getElementById('currentStep').textContent);
+            const total = steps.length;
+            const text = `Я прошёл ${current}/${total} шагов курса VS Code + GitHub Copilot! 🚀`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'VS Code Mastery',
+                    text: text,
+                    url: window.location.href,
+                });
+            } else {
+                alert(text + '\n\n' + window.location.href);
+            }
+        }
+    </script>
+</body>
+</html>
